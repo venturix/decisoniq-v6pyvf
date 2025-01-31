@@ -1,0 +1,76 @@
+apiVersion: 1
+
+# Base paths configuration
+paths:
+  data: /var/lib/grafana/data
+  logs: /var/log/grafana
+  plugins: /var/lib/grafana/plugins
+  provisioning: /etc/grafana/provisioning
+
+# Provisioning configuration for automated setup
+provisioning:
+  # Datasources provisioning
+  datasources:
+    path: /etc/grafana/provisioning/datasources
+    files:
+      - datasources.yml
+
+  # Dashboards provisioning  
+  dashboards:
+    path: /etc/grafana/provisioning/dashboards
+    files:
+      - dashboards.yml
+
+  # Plugins provisioning
+  plugins:
+    path: /etc/grafana/provisioning/plugins
+    files:
+      - plugins.yml
+
+  # Alerting provisioning
+  alerting:
+    path: /etc/grafana/provisioning/alerting
+    files:
+      - alerts.yml
+
+  # Notification channels provisioning
+  notifiers:
+    path: /etc/grafana/provisioning/notifiers
+    files:
+      - notifiers.yml
+
+# Security configuration
+security:
+  # Admin authentication using environment variables
+  admin_user: ${GRAFANA_ADMIN_USER}
+  admin_password: ${GRAFANA_ADMIN_PASSWORD}
+  secret_key: ${GRAFANA_SECRET_KEY}
+
+  # Enhanced security settings
+  disable_gravatar: true
+  cookie_secure: true
+  cookie_samesite: strict
+  allow_embedding: false
+
+# Authentication configuration
+auth:
+  disable_login_form: false
+  disable_signout_menu: false
+  oauth_auto_login: false
+  signout_redirect_url: ""
+  
+  # Session durations
+  login_maximum_inactive_lifetime_duration: "7d"
+  login_maximum_lifetime_duration: "30d"
+
+# Analytics and updates configuration
+analytics:
+  reporting_enabled: false
+  check_for_updates: true
+
+# Unified alerting configuration
+unified_alerting:
+  enabled: true
+  evaluation_timeout: "30s"
+  max_attempts: 3
+  min_interval: "10s"
