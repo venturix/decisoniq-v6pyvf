@@ -1,0 +1,164 @@
+name: Web CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/web/**'
+      - '.github/workflows/web-cd.yml'
+  workflow_dispatch:
+  release:
+    types: [published]
+
+# Ensure only one deployment runs at a time
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '18.x'
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  TASK_DEFINITION: ${{ secrets.TASK_DEFINITION }}
+  CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+  IMAGE_TAG: ${{ github.sha }}
+
+permissions:
+  id-token: write
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    name: Production Deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    needs: [build, test] # Depends on CI workflow jobs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        id: ecr-login
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/web
+          file: ./src/web/Dockerfile
+          push: true
+          target: production
+          tags: |
+            ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VITE_APP_NAME=${{ secrets.VITE_APP_NAME }}
+            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+            VITE_API_VERSION=${{ secrets.VITE_API_VERSION }}
+            VITE_BLITZY_ENVIRONMENT=production
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.TASK_DEFINITION }} \
+            --query taskDefinition > task-definition.json
+
+      - name: Update task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+          codedeploy-appspec: appspec.yaml
+          codedeploy-application: ${{ secrets.CODEDEPLOY_APPLICATION }}
+          codedeploy-deployment-group: ${{ secrets.CODEDEPLOY_DEPLOYMENT_GROUP }}
+          force-new-deployment: true
+
+      - name: Verify deployment health
+        run: |
+          # Wait for health check endpoint to be available
+          timeout=300
+          interval=10
+          elapsed=0
+          
+          until curl -s -f "${{ secrets.HEALTH_CHECK_URL }}" > /dev/null; do
+            if [ $elapsed -ge $timeout ]; then
+              echo "Health check failed after ${timeout}s"
+              exit 1
+            fi
+            echo "Waiting for service to be healthy..."
+            sleep $interval
+            elapsed=$((elapsed + interval))
+          done
+          
+          echo "Service is healthy"
+
+      - name: Monitor deployment metrics
+        run: |
+          # Check CloudWatch metrics for deployment
+          aws cloudwatch get-metric-statistics \
+            --namespace AWS/ECS \
+            --metric-name CPUUtilization \
+            --dimensions Name=ClusterName,Value=${{ env.ECS_CLUSTER }} Name=ServiceName,Value=${{ env.ECS_SERVICE }} \
+            --start-time $(date -u -v-5M +"%Y-%m-%dT%H:%M:%SZ") \
+            --end-time $(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+            --period 60 \
+            --statistics Average
+
+      - name: Update deployment documentation
+        if: success()
+        run: |
+          echo "Deployment completed successfully at $(date -u)"
+          echo "Image: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+          echo "Task Definition: ${{ env.TASK_DEFINITION }}"
+          echo "ECS Service: ${{ env.ECS_SERVICE }}"
+          echo "ECS Cluster: ${{ env.ECS_CLUSTER }}"
+
+      - name: Notify deployment status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
