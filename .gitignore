@@ -1,0 +1,175 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+pip-log.txt
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+bin/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+
+# Environment Files
+.env
+.env.*
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+
+# Build & Compilation
+dist/
+build/
+__pycache__/
+*.py[cod]
+*.so
+*.dylib
+.Python
+*.manifest
+*.spec
+
+# TypeScript/JavaScript
+*.tsbuildinfo
+*.js
+*.js.map
+*.d.ts
+.next/
+out/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# Testing
+coverage/
+.pytest_cache/
+test-results/
+playwright-report/
+junit.xml
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+
+# ML Artifacts
+ml_models/
+*.pkl
+*.h5
+*.onnx
+*.pt
+*.pth
+*.pb
+saved_models/
+checkpoints/
+
+# Logs & Data
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+data/
+logs/
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Cache
+.cache/
+.mypy_cache/
+.ruff_cache/
+.eslintcache
+.stylelintcache
+.sass-cache/
+.npm/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+.project
+.classpath
+.settings/
+.vs/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Infrastructure
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraformrc
+terraform.rc
+.terraform.lock.hcl
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Secrets and Keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+*.der
+id_rsa*
+*.pub
+.ssh/
+.gnupg/
+.gpg/
+
+# Docker
+.docker/
+docker-compose.override.yml
+*.dockerfile
+Dockerfile.*
+
+# Package Managers
+yarn.lock
+package-lock.json
+composer.lock
+Pipfile.lock
+poetry.lock
+.pdm.toml
+
+# Documentation
+docs/_build/
+site/
+.docusaurus/
+.vuepress/dist/
+
+# Miscellaneous
+.history/
+.git/
+*.bak
+*.orig
+*.rej
+*.old
+*.tmp
+*.temp
+.DS_Store?
+.AppleDouble
+.LSOverride
