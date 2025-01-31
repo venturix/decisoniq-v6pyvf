@@ -1,0 +1,261 @@
+name: Test CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+
+env:
+  NODE_VERSION: '18.x'
+  COVERAGE_THRESHOLD: '80'
+  PERFORMANCE_SLA_THRESHOLD: '3000'
+  UPTIME_SLA_THRESHOLD: '99.9'
+  TEST_ENV: 'ci'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    name: Setup Test Environment
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      cache-key: ${{ steps.cache-deps.outputs.cache-key }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache Dependencies
+        id: cache-deps
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Dependencies
+        run: npm ci --prefer-offline
+
+      - name: Setup Test Environment
+        run: |
+          npm run setup:env
+          npm run generate:data
+
+  unit-tests:
+    name: Unit & Integration Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run Unit Tests
+        run: npm run test:coverage
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-reports
+          path: coverage/
+          retention-days: 14
+
+      - name: Check Coverage Thresholds
+        run: |
+          COVERAGE=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
+          if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
+            echo "Coverage $COVERAGE% is below threshold of $COVERAGE_THRESHOLD%"
+            exit 1
+          fi
+
+  e2e-tests:
+    name: End-to-End Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E Tests
+        run: npm run test:e2e
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+
+  performance-tests:
+    name: Performance Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run Performance Tests
+        run: npm run test:performance
+        env:
+          CI: true
+          NODE_ENV: test
+          K6_BROWSER_ENABLED: true
+
+      - name: Validate Performance SLAs
+        run: |
+          RESPONSE_TIME=$(jq -r '.metrics.http_req_duration.p95' performance-results.json)
+          if (( $(echo "$RESPONSE_TIME > $PERFORMANCE_SLA_THRESHOLD" | bc -l) )); then
+            echo "P95 response time ${RESPONSE_TIME}ms exceeds threshold of ${PERFORMANCE_SLA_THRESHOLD}ms"
+            exit 1
+          fi
+
+      - name: Upload Performance Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: |
+            performance-results.json
+            k6-report/
+          retention-days: 14
+
+  security-tests:
+    name: Security Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run Security Tests
+        run: npm run test:security
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Run Dependency Audit
+        run: npm audit --production
+
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: security-reports/
+          retention-days: 14
+
+  test-report:
+    name: Generate Test Report
+    needs: [unit-tests, e2e-tests, performance-tests, security-tests]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Generate Combined Report
+        run: |
+          npm run report:generate
+          echo "Test Summary Report Generated"
+
+      - name: Upload Combined Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-summary-report
+          path: test-report/
+          retention-days: 30
+
+      - name: Check Test Results
+        if: always()
+        run: |
+          if [[ "${{ needs.unit-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.e2e-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.performance-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.security-tests.result }}" == "failure" ]]; then
+            echo "One or more test suites failed"
+            exit 1
+          fi
