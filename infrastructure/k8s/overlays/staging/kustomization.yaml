@@ -1,0 +1,96 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Define staging namespace
+namespace: customer-success-ai-staging
+
+# Add staging prefix to all resources
+namePrefix: staging-
+
+# Common labels for all resources
+commonLabels:
+  environment: staging
+  app: customer-success-platform
+  managed-by: kustomize
+
+# Common annotations for all resources
+commonAnnotations:
+  environment: staging
+  contact: platform-team
+  deployment-tool: kustomize
+  monitoring.enabled: "true"
+  backup.enabled: "true"
+
+# Base resources to be customized
+resources:
+- ../../base/namespace.yaml
+- ../../base/backend.yaml
+- ../../base/web.yaml
+- ../../base/redis.yaml
+- ../../base/monitoring.yaml
+
+# Generate ConfigMaps from files
+configMapGenerator:
+- name: backend-config
+  files:
+  - backend-config.yaml
+- name: web-config
+  files:
+  - web-config.yaml
+
+# Patches for staging environment customization
+patches:
+# Backend deployment patch
+- target:
+    kind: Deployment
+    name: backend
+  patch: |
+    spec:
+      replicas: 2
+      template:
+        spec:
+          containers:
+          - name: api
+            resources:
+              requests:
+                cpu: 500m
+                memory: 1Gi
+              limits:
+                cpu: 2000m
+                memory: 4Gi
+
+# Web deployment patch
+- target:
+    kind: Deployment
+    name: web
+  patch: |
+    spec:
+      replicas: 2
+      template:
+        spec:
+          containers:
+          - name: web
+            resources:
+              requests:
+                cpu: 250m
+                memory: 512Mi
+              limits:
+                cpu: 1000m
+                memory: 1Gi
+
+# Redis StatefulSet patch
+- target:
+    kind: StatefulSet
+    name: redis
+  patch: |
+    spec:
+      replicas: 2
+
+# Image configuration for staging environment
+images:
+- name: backend
+  newName: customer-success-ai/backend
+  newTag: staging
+- name: web
+  newName: customer-success-ai/web
+  newTag: staging
