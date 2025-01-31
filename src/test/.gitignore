@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+
+# Test Coverage Reports
+coverage/
+test-results/
+
+# Log Files
+*.log
+
+# Environment Configuration
+.env
+.env.*
+
+# Build Output
+dist/
+*.js
+*.js.map
+*.d.ts
+
+# Playwright Artifacts
+playwright-report/
+playwright/.cache/
+test-results/
+
+# Test Data
+test-data/
+
+# Performance Test Results
+performance-results/
+
+# CI/CD Reports
+junit.xml
+
+# IDE and System Files
+.DS_Store
+
+# Test Framework Specific
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+performance-results/
+
+# Sensitive Data
+.env
+.env.*
+*.pem
+*.key
+*.cert
+
+# Temporary Files
+*.tmp
+*.temp
+*.swp
+
+# Generated Documentation
+docs/
+
+# Debug Files
+*.debug
+debug.log
+
+# Local Development
+.local/
