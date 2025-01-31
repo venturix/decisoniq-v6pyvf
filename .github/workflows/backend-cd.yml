@@ -1,0 +1,169 @@
+name: Backend CD
+
+on:
+  workflow_run:
+    workflows: ["Backend CI"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: 'Deployment environment'
+        required: true
+        options:
+          - staging
+          - production
+      version:
+        type: string
+        description: 'Version tag override'
+        required: false
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  TERRAFORM_VERSION: '1.5.0'
+  DOCKER_BUILDKIT: '1'
+  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Backend Service
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+        id: ecr-login
+
+      - name: Security scan Docker image
+        uses: snyk/actions/docker@v2
+        with:
+          image: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          args: --severity-threshold=high --file=src/backend/Dockerfile
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/backend
+          file: ./src/backend/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          build-args: |
+            VERSION=${{ github.sha }}
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          cache-from: type=registry,ref=${{ env.ECR_REPOSITORY }}:buildcache
+          cache-to: type=registry,ref=${{ env.ECR_REPOSITORY }}:buildcache,mode=max
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Initialize Terraform
+        working-directory: ./infrastructure/terraform/aws
+        run: |
+          terraform init
+          terraform workspace select ${{ github.event.inputs.environment || 'staging' }}
+
+      - name: Validate Terraform changes
+        working-directory: ./infrastructure/terraform/aws
+        run: |
+          terraform validate
+          terraform plan -detailed-exitcode \
+            -var="image_tag=${{ github.sha }}" \
+            -var="environment=${{ github.event.inputs.environment || 'staging' }}"
+
+      - name: Apply Terraform changes
+        if: github.event.inputs.environment != 'production' || github.event.inputs.environment == 'production' && github.event.workflow_run.conclusion == 'success'
+        working-directory: ./infrastructure/terraform/aws
+        run: |
+          terraform apply -auto-approve \
+            -var="image_tag=${{ github.sha }}" \
+            -var="environment=${{ github.event.inputs.environment || 'staging' }}"
+
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --force-new-deployment \
+            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=100" \
+            --health-check-grace-period-seconds 60
+
+      - name: Wait for service stability
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }}
+
+      - name: Verify health checks
+        run: |
+          HEALTH_CHECK_URL="${{ vars.SERVICE_URL }}${{ vars.HEALTH_CHECK_PATH }}"
+          for i in {1..6}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_CHECK_URL)
+            if [ "$response" == "200" ]; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i: Health check failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "Health check failed after all attempts"
+          exit 1
+
+      - name: Monitor deployment metrics
+        run: |
+          aws cloudwatch get-metric-data \
+            --metric-data-queries file://monitoring/deployment-metrics.json \
+            --start-time $(date -u -v-15M '+%Y-%m-%dT%H:%M:%SZ') \
+            --end-time $(date -u '+%Y-%m-%dT%H:%M:%SZ')
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          PREVIOUS_VERSION=$(aws ecs describe-services \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }} \
+            --query 'services[0].deployments[?status==`PRIMARY`].taskDefinition' \
+            --output text)
+          
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --task-definition $PREVIOUS_VERSION \
+            --force-new-deployment
+          
+          echo "::error::Deployment failed, rolling back to $PREVIOUS_VERSION"
+          exit 1
+
+permissions:
+  id-token: write
+  contents: read
+  deployments: write
