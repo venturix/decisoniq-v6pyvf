@@ -1,0 +1,43 @@
+{
+  "extends": "../web/tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "lib": ["ES2022", "DOM"],
+    "moduleResolution": "node",
+    "rootDir": ".",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "types": [
+      "jest",
+      "node"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@test/*": ["src/*"],
+      "@utils/*": ["src/utils/*"],
+      "@mocks/*": ["src/mocks/*"],
+      "@config/*": ["src/config/*"],
+      "@types/*": ["src/types/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "**/*.js"
+  ]
+}
