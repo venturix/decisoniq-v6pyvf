@@ -1,0 +1,35 @@
+node_modules/*
+
+# Build outputs
+dist/*
+build/*
+coverage/*
+
+# Static assets
+public/*
+
+# Config files
+*.config.js
+*.config.ts
+vite.config.ts
+vite-env.d.ts
+.prettierrc
+
+# Data files
+*.json
+
+# Documentation
+*.md
+
+# Assets and styles
+*.css
+*.svg
+*.ico
+*.png
+*.jpg
+
+# Fonts
+*.woff
+*.woff2
+*.ttf
+*.eot
