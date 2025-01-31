@@ -1,0 +1,83 @@
+# Python bytecode and compiled files
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# Environment and configuration
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+
+# Build and distribution
+dist/
+build/
+*.egg-info/
+
+# Development and testing
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
+
+# Database files
+*.sqlite
+*.db
+
+# ML model artifacts
+ml_models/
+*.pkl
+*.h5
+*.onnx
+data/
+logs/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Poetry specific
+poetry.lock
+!pyproject.toml
+
+# Large data files
+*.csv
+*.parquet
+*.json
+!package.json
+!tsconfig.json
+
+# Temporary files
+*.bak
+*.tmp
+*~
+
+# Secrets and credentials
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+credentials/
+
+# Documentation build
+docs/_build/
+site/
+
+# Container artifacts
+*.tar
+*.tar.gz
+*.tgz
+
+# Profiling data
+*.prof
+*.stats
