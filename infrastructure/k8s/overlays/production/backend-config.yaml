@@ -1,0 +1,123 @@
+# Production environment overlay for Customer Success AI Platform backend services
+# Version: 1.0.0
+# Dependencies:
+# - Base backend configuration (../../base/backend.yaml)
+# - Kubernetes v1.25+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: customer-success-ai
+  annotations:
+    environment: production
+    tier: production
+    compliance: high-availability
+spec:
+  replicas: 3  # Production HA requirement
+  template:
+    spec:
+      containers:
+      - name: api
+        resources:
+          requests:
+            cpu: "1000m"    # Production-grade CPU request
+            memory: "2Gi"   # Production-grade memory request
+          limits:
+            cpu: "4000m"    # Production CPU limit
+            memory: "8Gi"   # Production memory limit
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: API_WORKERS
+          value: "4"        # Increased workers for production load
+        - name: ENABLE_METRICS
+          value: "true"
+        - name: CACHE_TTL
+          value: "3600"     # 1 hour cache TTL for production
+        - name: REDIS_CLUSTER_MODE
+          value: "true"     # Enable Redis cluster for HA
+        - name: MAX_CONNECTIONS
+          value: "1000"     # Production connection pool size
+        - name: TIMEOUT_SECONDS
+          value: "30"       # Production timeout setting
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  namespace: customer-success-ai
+spec:
+  minReplicas: 3
+  maxReplicas: 10
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend-deployment
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 300
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-network-policy
+  namespace: customer-success-ai
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+      component: api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: customer-success-ai
+          environment: production
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: customer-success-ai
+          environment: production
+    ports:
+    - protocol: TCP
+      port: 6379  # Redis
+    - protocol: TCP
+      port: 443   # HTTPS
