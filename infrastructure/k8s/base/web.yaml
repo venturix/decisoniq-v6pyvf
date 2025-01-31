@@ -1,0 +1,69 @@
+# Base Kubernetes configuration for Customer Success AI Platform web frontend
+# Built with Blitzy Page Builder and Node 18
+# Version: 1.0.0
+
+---
+# Web Application Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cs-ai-platform-web
+  labels:
+    app: cs-ai-platform-web
+spec:
+  # High availability with 3 replicas
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cs-ai-platform-web
+  template:
+    metadata:
+      labels:
+        app: cs-ai-platform-web
+    spec:
+      containers:
+        - name: web
+          image: cs-ai-platform-web
+          # Expose container port for HTTP traffic
+          ports:
+            - containerPort: 80
+          # Resource limits and requests for optimal performance
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m" 
+              memory: "1Gi"
+          # Liveness probe to ensure container health
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          # Readiness probe for traffic routing
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 30
+
+---
+# Internal Service for Web Application
+apiVersion: v1
+kind: Service
+metadata:
+  name: cs-ai-platform-web
+  labels:
+    app: cs-ai-platform-web
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: cs-ai-platform-web
