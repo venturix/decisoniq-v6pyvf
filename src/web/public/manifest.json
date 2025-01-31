@@ -1,0 +1,76 @@
+{
+  "name": "Customer Success AI Platform",
+  "short_name": "CS AI Platform",
+  "description": "Enterprise-grade predictive analytics and automation solution for customer success operations",
+  "version": "1.0.0",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0F172A",
+  "orientation": "any",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "business",
+    "productivity",
+    "analytics"
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "description": "View customer success metrics and KPIs"
+    },
+    {
+      "name": "Customers",
+      "url": "/customers", 
+      "description": "Manage customer accounts and health scores"
+    },
+    {
+      "name": "Playbooks",
+      "url": "/playbooks",
+      "description": "Access and manage automation workflows"
+    },
+    {
+      "name": "Analytics",
+      "url": "/analytics",
+      "description": "View detailed performance reports"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Dashboard View"
+    },
+    {
+      "src": "screenshots/mobile.png", 
+      "sizes": "750x1334",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Mobile View"
+    }
+  ]
+}
