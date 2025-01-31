@@ -1,0 +1,68 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Production namespace configuration
+namespace: customer-success-ai-prod
+namePrefix: prod-
+
+# Common labels for all resources
+commonLabels:
+  environment: production
+  managed-by: kustomize
+  app.kubernetes.io/part-of: customer-success-ai
+  app.kubernetes.io/environment: production
+
+# Common annotations for all resources
+commonAnnotations:
+  maintainer: platform-team
+  environment: production
+  contact: platform-team@company.com
+  deployment.kubernetes.io/revision: "1"
+  monitoring.kubernetes.io/enabled: "true"
+  backup.kubernetes.io/enabled: "true"
+
+# Base resources to be customized
+resources:
+- ../../base/namespace.yaml
+- ../../base/backend.yaml
+- ../../base/web.yaml
+- ../../base/redis.yaml
+- ../../base/monitoring.yaml
+
+# Production-specific ConfigMap generators
+configMapGenerator:
+- name: backend-config
+  files:
+  - backend-config.yaml
+- name: web-config
+  files:
+  - web-config.yaml
+
+# Production-specific patches
+patches:
+- target:
+    kind: Deployment
+    name: backend
+  path: backend-config.yaml
+- target:
+    kind: Deployment
+    name: web
+  path: web-config.yaml
+
+# High availability replica configuration
+replicas:
+- name: backend
+  count: 3
+- name: web
+  count: 3
+- name: redis
+  count: 3
+
+# Production image configuration
+images:
+- name: backend
+  newName: cs-ai-platform-backend
+  newTag: prod
+- name: web
+  newName: cs-ai-platform-web
+  newTag: prod
