@@ -1,0 +1,86 @@
+[tool.poetry]
+name = "customer-success-ai-platform"
+version = "1.0.0"
+description = "Enterprise-grade predictive analytics and automation solution for customer success"
+authors = ["Blitzy Engineering Team"]
+python = "^3.11"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.100.0"  # High performance async API framework
+sqlalchemy = "^2.0.0"  # ORM for database operations
+pydantic = "^2.0.0"  # Data validation
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}  # JWT token handling
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}  # Password hashing
+python-multipart = "^0.0.6"  # Form data parsing
+alembic = "^1.11.0"  # Database migrations
+psycopg2-binary = "^2.9.6"  # PostgreSQL adapter
+redis = "^4.6.0"  # Caching layer
+boto3 = "^1.28.0"  # AWS SDK
+sagemaker = "^2.175.0"  # AWS SageMaker SDK
+scikit-learn = "^1.3.0"  # ML model training
+pandas = "^2.0.0"  # Data manipulation
+numpy = "^1.24.0"  # Numerical computations
+python-dateutil = "^2.8.2"  # Date handling
+requests = "^2.31.0"  # HTTP client
+aiohttp = "^3.8.5"  # Async HTTP client
+uvicorn = {extras = ["standard"], version = "^0.23.0"}  # ASGI server
+gunicorn = "^21.2.0"  # WSGI HTTP server
+python-dotenv = "^1.0.0"  # Environment variable management
+tenacity = "^8.2.2"  # Retry handling
+structlog = "^23.1.0"  # Structured logging
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"  # Code formatting
+isort = "^5.12.0"  # Import sorting
+flake8 = "^6.1.0"  # Code linting
+mypy = "^1.5.0"  # Static type checking
+pytest = "^7.4.0"  # Testing framework
+pytest-cov = "^4.1.0"  # Test coverage
+pytest-asyncio = "^0.21.0"  # Async test support
+pytest-mock = "^3.11.1"  # Mocking support
+faker = "^19.2.0"  # Test data generation
+aioresponses = "^0.7.4"  # Async HTTP mocking
+freezegun = "^1.2.2"  # Time freezing for tests
+types-python-dateutil = "^2.8.19.14"  # Type stubs
+types-requests = "^2.31.0.2"  # Type stubs
+types-redis = "^4.6.0.3"  # Type stubs
+
+[build-system]
+requires = ["poetry-core>=1.7.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+include = "src/backend/src"
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.mypy]
+python_version = "3.11"
+disallow_untyped_defs = true
+strict_optional = true
+warn_return_any = true
+warn_unused_configs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+[tool.pytest]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "--cov=src --cov-report=term-missing --cov-report=xml:coverage.xml --cov-report=html:coverage_html"
+asyncio_mode = "auto"
