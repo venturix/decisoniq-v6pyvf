@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Primary Meta Tags -->
+    <title>Customer Success AI Platform</title>
+    <meta name="description" content="Enterprise-grade predictive analytics and automation solution for customer success operations">
+    <meta name="theme-color" content="#0F172A">
+    <meta name="application-name" content="Customer Success AI Platform">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Customer Success AI Platform">
+    <meta property="og:description" content="Enterprise-grade predictive analytics and automation solution for customer success operations">
+    <meta property="og:type" content="website">
+
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.blitzy.com;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+
+    <!-- Preconnect and DNS Prefetch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+
+    <!-- PWA Assets -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Critical Resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" type="module">
+
+    <!-- Theme Script -->
+    <script>
+        // Prevent flash of incorrect theme
+        try {
+            const theme = localStorage.getItem('cs-platform-theme');
+            if (theme) {
+                document.documentElement.classList.add(JSON.parse(theme).mode);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            }
+        } catch (e) {
+            console.warn('Theme initialization error:', e);
+        }
+    </script>
+</head>
+<body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <!-- Application Root -->
+    <div id="root" role="main"></div>
+
+    <!-- No JavaScript Fallback -->
+    <noscript>
+        <div style="padding: 20px; text-align: center;">
+            <h1>JavaScript Required</h1>
+            <p>You need to enable JavaScript to run this application. For assistance, please contact support.</p>
+        </div>
+    </noscript>
+
+    <!-- Development Scripts -->
+    <script type="module" src="/@vite/client"></script>
+    
+    <!-- Application Entry Point -->
+    <script type="module" src="/src/main.tsx" defer></script>
+</body>
+</html>
