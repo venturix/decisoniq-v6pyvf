@@ -1,0 +1,170 @@
+{
+  "builder": {
+    "title": "Report Builder",
+    "description": "Create and customize reports",
+    "metrics": {
+      "label": "Select Metrics",
+      "placeholder": "Choose metrics to include",
+      "validation": "Please select at least one metric",
+      "searchPlaceholder": "Search available metrics",
+      "selectedCount": "{{count}} metrics selected",
+      "maxSelection": "Maximum {{max}} metrics allowed"
+    },
+    "dateRange": {
+      "label": "Date Range",
+      "start": "Start Date",
+      "end": "End Date",
+      "validation": "Please select a valid date range",
+      "presets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This Week",
+        "lastWeek": "Last Week",
+        "thisMonth": "This Month",
+        "lastMonth": "Last Month",
+        "thisQuarter": "This Quarter",
+        "lastQuarter": "Last Quarter",
+        "thisYear": "This Year",
+        "lastYear": "Last Year"
+      }
+    },
+    "visualizations": {
+      "label": "Visualizations",
+      "type": "Chart Type",
+      "height": "Chart Height",
+      "legend": "Show Legend",
+      "validation": "Please configure visualization settings",
+      "options": {
+        "axis": {
+          "label": "Axis Labels",
+          "xAxis": "X-Axis Title",
+          "yAxis": "Y-Axis Title"
+        },
+        "colors": {
+          "label": "Color Scheme",
+          "primary": "Primary Color",
+          "secondary": "Secondary Color"
+        },
+        "display": {
+          "showValues": "Show Values",
+          "showTrendline": "Show Trendline",
+          "showGridlines": "Show Gridlines"
+        }
+      }
+    },
+    "actions": {
+      "save": "Save Report",
+      "saveAs": "Save As New Report",
+      "preview": "Preview Report",
+      "reset": "Reset Form",
+      "cancel": "Cancel Changes",
+      "delete": "Delete Report",
+      "share": "Share Report"
+    }
+  },
+  "viewer": {
+    "title": "Report Viewer",
+    "filters": {
+      "label": "Filters",
+      "apply": "Apply Filters",
+      "reset": "Reset Filters",
+      "search": "Search Filters",
+      "addFilter": "Add Filter",
+      "removeFilter": "Remove Filter",
+      "operators": {
+        "equals": "Equals",
+        "notEquals": "Does Not Equal",
+        "greaterThan": "Greater Than",
+        "lessThan": "Less Than",
+        "contains": "Contains",
+        "notContains": "Does Not Contain"
+      }
+    },
+    "export": {
+      "label": "Export Options",
+      "format": "Export Format",
+      "download": "Download Report",
+      "schedule": "Schedule Export",
+      "formats": {
+        "pdf": "PDF Document",
+        "excel": "Excel Spreadsheet",
+        "csv": "CSV File",
+        "image": "Image (PNG)",
+        "powerpoint": "PowerPoint Presentation"
+      },
+      "options": {
+        "includeFilters": "Include Applied Filters",
+        "includeLegend": "Include Legend",
+        "includeTimestamp": "Include Timestamp",
+        "orientation": {
+          "label": "Page Orientation",
+          "portrait": "Portrait",
+          "landscape": "Landscape"
+        }
+      }
+    },
+    "noData": "No data available for selected criteria",
+    "loading": "Loading report data...",
+    "error": "Error loading report data",
+    "refresh": "Refresh Data",
+    "lastUpdated": "Last updated: {{timestamp}}"
+  },
+  "metrics": {
+    "health_score": {
+      "label": "Health Score",
+      "description": "Overall customer health indicator",
+      "tooltip": "Composite score based on usage, engagement, and support history",
+      "calculation": "Weighted average of key performance indicators",
+      "thresholds": {
+        "excellent": "90-100: Excellent health",
+        "good": "70-89: Good health",
+        "fair": "50-69: Fair health",
+        "poor": "0-49: Poor health"
+      }
+    },
+    "risk_score": {
+      "label": "Risk Score",
+      "description": "Customer churn risk level",
+      "tooltip": "Probability of customer churn based on ML predictions",
+      "calculation": "AI-powered analysis of customer behavior patterns",
+      "thresholds": {
+        "low": "0-30: Low risk",
+        "medium": "31-70: Medium risk",
+        "high": "71-100: High risk"
+      }
+    },
+    "churn_probability": {
+      "label": "Churn Probability",
+      "description": "Likelihood of customer churn",
+      "tooltip": "Percentage chance of customer cancellation",
+      "calculation": "Machine learning prediction based on historical patterns",
+      "interpretation": {
+        "low": "<20%: Low probability",
+        "medium": "20-50%: Medium probability",
+        "high": ">50%: High probability"
+      }
+    },
+    "revenue_impact": {
+      "label": "Revenue Impact",
+      "description": "Financial impact analysis",
+      "tooltip": "Projected revenue effect of customer actions",
+      "calculation": "Combination of current MRR and risk factors",
+      "components": {
+        "current": "Current Revenue",
+        "projected": "Projected Change",
+        "risk": "At-Risk Amount"
+      }
+    },
+    "interaction_rate": {
+      "label": "Interaction Rate",
+      "description": "Customer engagement level",
+      "tooltip": "Frequency and quality of customer interactions",
+      "calculation": "Number of meaningful interactions per time period",
+      "categories": {
+        "high": ">10 interactions/month",
+        "medium": "5-10 interactions/month",
+        "low": "<5 interactions/month"
+      }
+    }
+  }
+}
