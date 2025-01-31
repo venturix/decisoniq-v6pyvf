@@ -1,0 +1,190 @@
+/* Tailwind CSS v3.3.0 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme Engine Integration */
+@import '@blitzy/theme-engine/dist/styles.css';
+
+/* Base Layer Customization */
+@layer base {
+  :root {
+    /* Enterprise Typography */
+    --font-primary: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    
+    /* Base Spacing Scale (8px) */
+    --spacing-unit: 8px;
+    
+    /* Z-index Scale */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-modal: 1030;
+    --z-popover: 1040;
+    --z-tooltip: 1050;
+  }
+
+  /* Reduced Motion Preferences */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Component Layer */
+@layer components {
+  /* Enterprise Card Patterns */
+  .card {
+    @apply rounded-lg border border-border bg-surface p-6 shadow-sm transition-shadow duration-200;
+  }
+  
+  /* Dashboard Widget Patterns */
+  .widget {
+    @apply rounded-lg border border-border bg-surface p-4 shadow-md;
+  }
+  
+  /* Data Grid Patterns */
+  .data-grid {
+    @apply w-full border border-border bg-surface rounded-lg overflow-hidden;
+  }
+  
+  /* Enterprise Button Variants */
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary/90 focus:ring-2 focus:ring-primary/20 disabled:opacity-50;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary/90 focus:ring-2 focus:ring-secondary/20 disabled:opacity-50;
+  }
+  
+  /* Risk Indicator Patterns */
+  .risk-high {
+    @apply bg-riskHigh/10 text-riskHigh border-riskHigh/20;
+  }
+  
+  .risk-medium {
+    @apply bg-riskMedium/10 text-riskMedium border-riskMedium/20;
+  }
+  
+  .risk-low {
+    @apply bg-riskLow/10 text-riskLow border-riskLow/20;
+  }
+}
+
+/* Utility Layer */
+@layer utilities {
+  /* Z-Pattern Layout Utilities */
+  .z-pattern {
+    @apply grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-6;
+  }
+  
+  /* F-Pattern Layout Utilities */
+  .f-pattern {
+    @apply grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3;
+  }
+  
+  /* Enterprise Grid System */
+  .grid-enterprise {
+    @apply grid grid-cols-12 gap-4;
+  }
+  
+  /* Accessibility Utilities */
+  .focus-visible {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+  
+  /* High Contrast Utilities */
+  .high-contrast {
+    @apply [color-scheme:high-contrast] [forced-color-adjust:auto];
+  }
+  
+  /* Screen Reader Utilities */
+  .sr-focus {
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50;
+  }
+}
+
+/* Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+  
+  .dark\:enterprise {
+    @apply bg-background text-text;
+  }
+}
+
+/* Responsive Breakpoints */
+@screen xs {
+  .container {
+    @apply max-w-[320px];
+  }
+}
+
+@screen sm {
+  .container {
+    @apply max-w-[768px];
+  }
+}
+
+@screen md {
+  .container {
+    @apply max-w-[1024px];
+  }
+}
+
+@screen lg {
+  .container {
+    @apply max-w-[1440px];
+  }
+}
+
+/* Chart Component Utilities */
+.chart-container {
+  @apply rounded-lg bg-surface p-4;
+}
+
+.chart-tooltip {
+  @apply rounded-md bg-surface/90 p-2 shadow-lg border border-border;
+}
+
+/* Form Component Utilities */
+.form-input {
+  @apply rounded-md border-border focus:border-primary focus:ring-primary/20;
+}
+
+.form-select {
+  @apply rounded-md border-border focus:border-primary focus:ring-primary/20;
+}
+
+.form-checkbox {
+  @apply rounded text-primary focus:ring-primary/20;
+}
+
+/* Animation Utilities */
+.animate-enterprise {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+/* Status Indicator Utilities */
+.status-badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+}
+
+/* Enterprise Table Utilities */
+.table-enterprise {
+  @apply min-w-full divide-y divide-border;
+}
+
+.table-header {
+  @apply bg-surface/50 text-textSecondary text-left text-sm font-medium;
+}
+
+.table-cell {
+  @apply whitespace-nowrap px-6 py-4 text-sm;
+}
