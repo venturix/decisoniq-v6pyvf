@@ -1,0 +1,80 @@
+# This file defines code ownership and required reviewers for the Customer Success AI Platform
+# Version: v1
+# Format: pattern  owner1 owner2 ...
+# See: https://docs.github.com/en/repositories/managing-your-repository-settings/about-code-owners
+
+# Default owners for everything in the repo
+# Requires project lead review for unspecified files
+*       @project-leads
+
+# Backend service ownership
+# Requires backend team and senior engineer review
+src/backend/                @backend-team @senior-backend-engineers
+src/backend/src/           @backend-team @senior-backend-engineers
+src/backend/tests/         @backend-team @senior-backend-engineers
+
+# Machine learning components
+# Requires ML team, data scientists and senior ML engineer review
+src/backend/src/ml/                @ml-team @data-scientists @senior-ml-engineers
+src/backend/src/models/risk.py     @ml-team @data-scientists @senior-ml-engineers
+src/backend/src/predictive/        @ml-team @data-scientists @senior-ml-engineers
+src/backend/src/features/          @ml-team @data-scientists @senior-ml-engineers
+
+# Frontend application
+# Requires frontend team and senior frontend engineer review
+src/web/        @frontend-team @senior-frontend-engineers
+src/web/src/    @frontend-team @senior-frontend-engineers
+src/web/tests/  @frontend-team @senior-frontend-engineers
+
+# Security-critical components
+# Requires mandatory security team review
+src/backend/src/config/security.py     @security-team @senior-security-engineers @backend-team
+src/backend/src/core/security.py       @security-team @senior-security-engineers @backend-team
+src/backend/src/api/security.py        @security-team @senior-security-engineers @backend-team
+src/backend/src/auth/                  @security-team @senior-security-engineers @backend-team
+src/backend/src/integrations/security/ @security-team @senior-security-engineers @backend-team
+
+# Infrastructure and deployment
+# Requires DevOps and platform engineer review
+infrastructure/           @devops-team @platform-engineers @senior-infrastructure-engineers
+deployment/              @devops-team @platform-engineers @senior-infrastructure-engineers
+docker/                  @devops-team @platform-engineers
+kubernetes/             @devops-team @platform-engineers @senior-infrastructure-engineers
+
+# CI/CD workflows
+# Requires DevOps and security team review
+.github/workflows/       @devops-team @ci-cd-engineers @security-team
+.github/actions/        @devops-team @ci-cd-engineers @security-team
+
+# Test suites
+# Requires QA and test automation engineer review
+src/test/              @qa-team @test-automation-engineers @senior-qa-engineers
+src/backend/tests/     @qa-team @test-automation-engineers @backend-team
+
+# Third-party integrations
+# Requires integration team and security review
+src/backend/src/integrations/        @integration-team @backend-team @security-team
+src/backend/src/connectors/         @integration-team @backend-team @security-team
+
+# API endpoints
+# Requires API team and senior engineer review
+src/backend/src/api/        @api-team @backend-team @senior-api-engineers
+src/backend/src/routes/    @api-team @backend-team @senior-api-engineers
+
+# Documentation
+# Requires technical writer and relevant team review
+docs/                    @tech-writers @project-leads
+*.md                    @tech-writers @project-leads
+
+# Build and dependency files
+# Requires DevOps and security review
+pyproject.toml          @devops-team @security-team @backend-team
+poetry.lock            @devops-team @security-team @backend-team
+package.json           @devops-team @security-team @frontend-team
+yarn.lock              @devops-team @security-team @frontend-team
+
+# Security and compliance files
+# Requires security team review
+SECURITY.md            @security-team @project-leads
+security/              @security-team @senior-security-engineers
+compliance/           @security-team @compliance-team
