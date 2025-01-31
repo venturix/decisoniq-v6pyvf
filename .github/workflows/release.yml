@@ -1,0 +1,185 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        type: choice
+        description: 'Type of version bump'
+        required: true
+        options:
+          - major
+          - minor
+          - patch
+      force_deploy:
+        type: boolean
+        description: 'Force deployment without validation'
+        required: false
+        default: false
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NODE_VERSION: '18.x'
+  PYTHON_VERSION: '3.11'
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate Release Prerequisites
+    runs-on: ubuntu-latest
+    outputs:
+      backend_status: ${{ steps.backend_check.outputs.status }}
+      frontend_status: ${{ steps.frontend_check.outputs.status }}
+    steps:
+      - name: Check Backend CI Status
+        id: backend_check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const workflow = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            return workflow.data.conclusion === 'success';
+
+      - name: Check Frontend CI Status
+        id: frontend_check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const workflow = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            return workflow.data.conclusion === 'success';
+
+  prepare:
+    name: Prepare Release
+    needs: validate
+    if: |
+      needs.validate.outputs.backend_status == 'success' &&
+      needs.validate.outputs.frontend_status == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.tag.outputs.new_version }}
+      changelog: ${{ steps.release_notes.outputs.content }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate next version
+        id: tag
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          release_branches: main
+          default_bump: ${{ github.event.inputs.version_type }}
+          dry_run: true
+
+      - name: Generate release notes
+        id: release_notes
+        uses: release-drafter/release-drafter@v5
+        with:
+          version: ${{ steps.tag.outputs.new_version }}
+          tag: ${{ steps.tag.outputs.new_tag }}
+
+      - name: Update version files
+        run: |
+          # Update frontend version
+          cd src/web
+          npm version ${{ steps.tag.outputs.new_version }} --no-git-tag-version
+          
+          # Update backend version
+          cd ../backend
+          poetry version ${{ steps.tag.outputs.new_version }}
+
+  release:
+    name: Create Release
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.prepare.outputs.version }}
+          release_name: Release v${{ needs.prepare.outputs.version }}
+          body: ${{ needs.prepare.outputs.changelog }}
+          draft: false
+          prerelease: false
+
+  deploy:
+    name: Deploy Release
+    needs: [prepare, release]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger Backend Deployment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'backend-cd.yml',
+              ref: 'main',
+              inputs: {
+                environment: 'production',
+                version: 'v${{ needs.prepare.outputs.version }}'
+              }
+            });
+
+      - name: Wait for Backend Health
+        run: |
+          attempts=0
+          max_attempts=30
+          until curl -s -f http://api.production/health || [ $attempts -eq $max_attempts ]
+          do
+            attempts=$((attempts + 1))
+            echo "Waiting for backend health check (attempt $attempts/$max_attempts)..."
+            sleep 10
+          done
+          
+          if [ $attempts -eq $max_attempts ]; then
+            echo "Backend health check failed after $max_attempts attempts"
+            exit 1
+          fi
+
+      - name: Monitor Deployment
+        run: |
+          # Check deployment metrics
+          curl -s -f http://api.production/metrics | grep deployment_status
+          
+          # Verify system health
+          curl -s -f http://api.production/health/detailed
+
+      - name: Notify Release Status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = '${{ job.status }}';
+            const version = 'v${{ needs.prepare.outputs.version }}';
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Release ${version} deployment ${status.toLowerCase()}`
+            });
+
+permissions:
+  contents: write
+  deployments: write
+  issues: write
+  pull-requests: write
