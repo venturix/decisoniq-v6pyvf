@@ -1,0 +1,41 @@
+# Customer Success AI Platform - Web Crawler Access Control Policy
+# Last Updated: Required before production deployment
+# Review Frequency: Monthly
+# Security Impact: Critical
+
+# Default policy - restrict access to all crawlers
+User-agent: *
+
+# Explicitly block access to all sensitive application paths
+Disallow: /api/
+Disallow: /auth/
+Disallow: /customers/
+Disallow: /analytics/
+Disallow: /playbooks/
+Disallow: /reports/
+Disallow: /settings/
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /internal/
+Disallow: /metrics/
+Disallow: /integrations/
+Disallow: /user/
+Disallow: /account/
+Disallow: /billing/
+Disallow: /ml/
+Disallow: /predictions/
+Disallow: /risk-scores/
+Disallow: /health-scores/
+
+# Allow controlled access to public marketing content
+Allow: /
+Allow: /public/
+Allow: /about/
+Allow: /contact/
+Allow: /features/
+
+# Sitemap location for allowed public content
+Sitemap: /sitemap.xml
+
+# Crawl-delay directive to prevent server overload
+Crawl-delay: 10
