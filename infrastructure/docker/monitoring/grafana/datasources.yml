@@ -1,0 +1,47 @@
+# Grafana datasources configuration v9.5.0
+# Configures Prometheus for metrics (99.9% uptime monitoring) and Loki for logs
+
+apiVersion: 1
+
+# Remove any existing datasources to ensure clean configuration
+deleteDatasources:
+  - name: Prometheus
+    orgId: 1
+  - name: Loki
+    orgId: 1
+
+# Configure datasources for metrics and logs monitoring
+datasources:
+  # Prometheus datasource for high-resolution metrics collection
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://prometheus:9090
+    basicAuth: false
+    isDefault: true
+    version: 1
+    editable: false
+    jsonData:
+      # 15s scrape interval for high-resolution metrics
+      timeInterval: "15s"
+      # 30s timeout for complex queries
+      queryTimeout: "30s"
+      # Use POST method for larger queries
+      httpMethod: "POST"
+
+  # Loki datasource for log aggregation and analysis
+  - name: Loki
+    type: loki
+    access: proxy
+    orgId: 1
+    url: http://loki:3100
+    basicAuth: false
+    isDefault: false
+    version: 1
+    editable: false
+    jsonData:
+      # Limit to 1000 lines per request for performance
+      maxLines: 1000
+      # 30s timeout for log queries
+      timeout: 30
