@@ -1,0 +1,124 @@
+{
+  "title": "Customer Success Dashboard",
+  "kpi": {
+    "atRiskAccounts": {
+      "title": "At-Risk Accounts",
+      "critical": "Critical",
+      "warning": "Warning",
+      "healthy": "Healthy",
+      "tooltip": "Accounts categorized by risk level based on AI analysis",
+      "count": {
+        "prefix": "",
+        "suffix": "accounts"
+      }
+    },
+    "revenueImpact": {
+      "title": "Revenue Impact",
+      "atRisk": "At Risk",
+      "target": "of Goal",
+      "currency": "USD",
+      "tooltip": "Potential revenue impact from at-risk accounts",
+      "format": {
+        "style": "currency",
+        "minimumFractionDigits": 0,
+        "maximumFractionDigits": 2
+      }
+    },
+    "interventions": {
+      "title": "Active Interventions",
+      "status": {
+        "inProgress": "In Progress",
+        "scheduled": "Scheduled",
+        "completed": "Completed",
+        "overdue": "Overdue",
+        "cancelled": "Cancelled"
+      },
+      "priority": {
+        "high": "High Priority",
+        "medium": "Medium Priority",
+        "low": "Low Priority"
+      }
+    },
+    "metrics": {
+      "churnRate": {
+        "title": "Churn Rate",
+        "tooltip": "Monthly customer churn rate",
+        "format": "percentage"
+      },
+      "expansionRevenue": {
+        "title": "Expansion Revenue",
+        "tooltip": "Additional revenue from existing customers",
+        "format": "currency"
+      },
+      "customerHealth": {
+        "title": "Customer Health",
+        "tooltip": "Overall customer health score",
+        "format": "score"
+      },
+      "operationalEfficiency": {
+        "title": "Operational Efficiency",
+        "tooltip": "Team productivity metrics",
+        "format": "percentage"
+      }
+    }
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "createPlaybook": {
+      "label": "Create Playbook",
+      "tooltip": "Create a new intervention playbook"
+    },
+    "bulkAssign": {
+      "label": "Bulk Assign",
+      "tooltip": "Assign multiple accounts to team members"
+    },
+    "newIntervention": {
+      "label": "New Intervention",
+      "tooltip": "Start a new customer intervention"
+    }
+  },
+  "activityFeed": {
+    "title": "Recent Activities",
+    "headers": {
+      "account": "Account",
+      "riskScore": "Risk Score",
+      "owner": "Owner",
+      "status": "Status",
+      "lastUpdated": "Last Updated",
+      "nextAction": "Next Action"
+    },
+    "viewAll": "View All",
+    "empty": "No recent activities",
+    "loading": "Loading activities..."
+  },
+  "alerts": {
+    "noData": "No data available",
+    "loading": "Loading dashboard data...",
+    "error": {
+      "general": "Error loading dashboard data",
+      "network": "Network connection error",
+      "permission": "Insufficient permissions",
+      "timeout": "Request timeout"
+    },
+    "success": {
+      "dataUpdate": "Dashboard data updated",
+      "actionComplete": "Action completed successfully"
+    }
+  },
+  "timeRanges": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "lastWeek": "Last 7 days",
+    "lastMonth": "Last 30 days",
+    "custom": "Custom Range"
+  },
+  "filters": {
+    "title": "Filters",
+    "team": "Team",
+    "region": "Region",
+    "segment": "Segment",
+    "riskLevel": "Risk Level",
+    "apply": "Apply Filters",
+    "clear": "Clear All"
+  }
+}
