@@ -1,0 +1,181 @@
+{
+  "title": "Playbooks",
+  "create": {
+    "title": "Create Playbook",
+    "description": "Design automated workflows to manage customer success interventions",
+    "button": "Create Playbook",
+    "success": "Playbook created successfully",
+    "error": "Error creating playbook",
+    "aria": {
+      "createButton": "Create new playbook",
+      "form": "Playbook creation form"
+    }
+  },
+  "edit": {
+    "title": "Edit Playbook",
+    "description": "Modify existing playbook configuration",
+    "button": "Save Changes",
+    "success": "Changes saved successfully",
+    "error": "Error saving changes",
+    "aria": {
+      "saveButton": "Save playbook changes",
+      "form": "Playbook edit form"
+    }
+  },
+  "builder": {
+    "toolbar": {
+      "save": "Save",
+      "undo": "Undo",
+      "redo": "Redo",
+      "preview": "Preview",
+      "delete": "Delete",
+      "shortcuts": {
+        "save": "Ctrl/Cmd + S",
+        "undo": "Ctrl/Cmd + Z",
+        "redo": "Ctrl/Cmd + Shift + Z"
+      },
+      "tooltips": {
+        "save": "Save current playbook",
+        "undo": "Undo last action",
+        "redo": "Redo last action",
+        "preview": "Preview playbook flow",
+        "delete": "Delete playbook"
+      }
+    },
+    "canvas": {
+      "empty": "Drag and drop steps to build your playbook",
+      "maxSteps": "Maximum {{count}} steps allowed",
+      "aria": {
+        "dropZone": "Playbook building area",
+        "stepList": "List of playbook steps"
+      }
+    },
+    "steps": {
+      "email": {
+        "title": "Send Email",
+        "description": "Send automated email to customer",
+        "fields": {
+          "template": "Email Template",
+          "subject": "Subject",
+          "recipients": "Recipients"
+        }
+      },
+      "task": {
+        "title": "Create Task",
+        "description": "Create follow-up task",
+        "fields": {
+          "title": "Task Title",
+          "assignee": "Assignee",
+          "dueDate": "Due Date"
+        }
+      },
+      "meeting": {
+        "title": "Schedule Meeting",
+        "description": "Schedule customer meeting",
+        "fields": {
+          "type": "Meeting Type",
+          "duration": "Duration",
+          "participants": "Participants"
+        }
+      },
+      "notification": {
+        "title": "Send Notification",
+        "description": "Send internal notification",
+        "fields": {
+          "message": "Message",
+          "priority": "Priority",
+          "channel": "Channel"
+        }
+      },
+      "condition": {
+        "title": "Add Condition",
+        "description": "Add branching logic",
+        "fields": {
+          "metric": "Metric",
+          "operator": "Operator",
+          "value": "Value"
+        }
+      },
+      "delay": {
+        "title": "Add Delay",
+        "description": "Add time delay",
+        "fields": {
+          "duration": "Duration",
+          "unit": "Time Unit"
+        }
+      }
+    },
+    "triggers": {
+      "title": "Trigger Conditions",
+      "manual": "Manual Trigger",
+      "automatic": "Automatic Trigger",
+      "scheduled": "Scheduled Trigger",
+      "fields": {
+        "riskScore": "Risk Score Threshold",
+        "usage": "Usage Decline",
+        "revenue": "Revenue Impact",
+        "schedule": "Schedule Pattern"
+      }
+    },
+    "configuration": {
+      "title": "Step Configuration",
+      "name": "Step Name",
+      "description": "Description",
+      "type": "Step Type",
+      "assignee": "Assignee",
+      "dueDate": "Due Date",
+      "priority": "Priority",
+      "aria": {
+        "configPanel": "Step configuration panel",
+        "form": "Step configuration form"
+      }
+    }
+  },
+  "status": {
+    "draft": "Draft",
+    "active": "Active",
+    "paused": "Paused",
+    "archived": "Archived",
+    "tooltips": {
+      "draft": "Playbook is in draft mode",
+      "active": "Playbook is active and running",
+      "paused": "Playbook execution is paused",
+      "archived": "Playbook is archived"
+    }
+  },
+  "validation": {
+    "required": "This field is required",
+    "maxLength": "Maximum {{count}} characters allowed",
+    "invalidType": "Invalid step type",
+    "duplicateName": "Playbook name must be unique",
+    "numeric": {
+      "min": "Minimum value: {{min}}",
+      "max": "Maximum value: {{max}}",
+      "integer": "Must be a whole number"
+    },
+    "date": {
+      "future": "Must be a future date",
+      "workday": "Must be a business day"
+    }
+  },
+  "confirmations": {
+    "delete": {
+      "title": "Delete Playbook",
+      "message": "Are you sure you want to delete this playbook?",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "aria": {
+        "dialog": "Delete playbook confirmation dialog"
+      }
+    },
+    "discard": {
+      "title": "Discard Changes",
+      "message": "Are you sure you want to discard your changes?",
+      "confirm": "Discard",
+      "cancel": "Cancel",
+      "aria": {
+        "dialog": "Discard changes confirmation dialog"
+      }
+    }
+  }
+}
