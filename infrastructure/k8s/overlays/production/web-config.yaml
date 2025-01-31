@@ -1,0 +1,69 @@
+# Production overlay configuration for Customer Success AI Platform web frontend
+# Enhances base configuration with production-specific settings for high availability
+# Version: 1.0.0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cs-ai-platform-web
+spec:
+  template:
+    spec:
+      containers:
+        - name: web
+          # Production environment variables
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: VITE_APP_NAME
+              value: "Customer Success AI Platform"
+            - name: VITE_API_BASE_URL
+              value: "https://api.cs-ai-platform.prod"
+            - name: VITE_API_VERSION
+              value: "v1"
+            - name: VITE_BLITZY_ENVIRONMENT
+              value: "production"
+          
+          # Enhanced resource allocation for production workloads
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"
+          
+          # Production-grade health checks
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+      
+      # Pod anti-affinity for high availability across nodes
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - cs-ai-platform-web
+                topologyKey: kubernetes.io/hostname
