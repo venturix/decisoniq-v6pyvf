@@ -1,0 +1,223 @@
+name: Web CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/web/**'
+      - '.github/workflows/web-ci.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/web/**'
+      - '.github/workflows/web-ci.yml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18.x'
+  CACHE_KEY: "npm-${{ hashFiles('src/web/package-lock.json') }}"
+  TEST_COVERAGE_THRESHOLD: 80
+  MAX_PARALLEL_JOBS: 4
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Validate repository CODEOWNERS
+        run: |
+          if [ ! -f .github/CODEOWNERS ]; then
+            echo "::error::CODEOWNERS file is required"
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            src/web/node_modules
+            ~/.npm
+          key: ${{ env.CACHE_KEY }}
+          restore-keys: |
+            npm-
+
+      - name: Install dependencies
+        working-directory: src/web
+        run: |
+          npm ci --audit
+          npm audit fix --force || true
+
+      - name: Validate package.json
+        working-directory: src/web
+        run: |
+          npx package-json-validator package.json
+          npm ls || true
+
+  lint:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            src/web/node_modules
+            ~/.npm
+          key: ${{ env.CACHE_KEY }}
+
+      - name: Run ESLint
+        working-directory: src/web
+        run: |
+          npm run lint -- --max-warnings 0 --format junit --output-file eslint-report.xml
+
+      - name: Run Prettier check
+        working-directory: src/web
+        run: npm run format -- --check
+
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint-report
+          path: src/web/eslint-report.xml
+
+  type_check:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            src/web/node_modules
+            ~/.npm
+          key: ${{ env.CACHE_KEY }}
+
+      - name: Run TypeScript compiler
+        working-directory: src/web
+        run: |
+          npm run type-check
+          tsc --project tsconfig.json --noEmit --pretty
+
+      - name: Generate type coverage report
+        working-directory: src/web
+        run: |
+          npx type-coverage --detail --strict --ignore-files "**/*.test.ts" --ignore-files "**/*.test.tsx"
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            src/web/node_modules
+            ~/.npm
+          key: ${{ env.CACHE_KEY }}
+
+      - name: Run tests with coverage
+        working-directory: src/web
+        run: |
+          npm run test:coverage -- --ci --maxWorkers=${{ env.MAX_PARALLEL_JOBS }} --coverage-threshold=${{ env.TEST_COVERAGE_THRESHOLD }}
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: src/web/coverage
+
+      - name: Check coverage thresholds
+        working-directory: src/web
+        run: |
+          COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')
+          if (( $(echo "$COVERAGE < ${{ env.TEST_COVERAGE_THRESHOLD }}" | bc -l) )); then
+            echo "::error::Coverage ($COVERAGE%) is below threshold (${{ env.TEST_COVERAGE_THRESHOLD }}%)"
+            exit 1
+          fi
+
+  build:
+    needs: [lint, type_check, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: src/web/package-lock.json
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            src/web/node_modules
+            ~/.npm
+          key: ${{ env.CACHE_KEY }}
+
+      - name: Build production bundle
+        working-directory: src/web
+        env:
+          NODE_ENV: production
+        run: |
+          npm run build
+          npm run preview -- --port 3000 &
+          sleep 5
+          curl -f http://localhost:3000 || exit 1
+
+      - name: Analyze bundle size
+        working-directory: src/web
+        run: |
+          npx source-map-explorer 'dist/**/*.js' --html bundle-analysis.html
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            src/web/dist
+            src/web/bundle-analysis.html
