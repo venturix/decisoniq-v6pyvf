@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: customer-success-ai-staging
+  labels:
+    app: customer-success-platform
+    environment: staging
+    component: backend
+    managed-by: kustomize
+data:
+  # Application Environment Settings
+  APP_ENV: "staging"
+  LOG_LEVEL: "INFO"
+  DEBUG: "false"
+
+  # API Server Configuration
+  API_WORKERS: "2"
+  MAX_CONNECTIONS: "100"
+  REQUEST_TIMEOUT: "30"
+  CORS_ORIGINS: "https://staging.customer-success-ai.com"
+  GRACEFUL_SHUTDOWN_TIMEOUT: "30"
+
+  # Cache Configuration
+  REDIS_MAX_CONNECTIONS: "50"
+  CACHE_TTL: "300"
+
+  # ML Model Settings
+  ML_MODEL_RETRAIN_SCHEDULE: "0 0 * * 0"  # Weekly retraining on Sundays
+  ML_MODEL_PREDICTION_TIMEOUT: "2.5"       # 2.5s timeout for predictions
+  ML_MODEL_BATCH_SIZE: "50"
+  SAGEMAKER_ENDPOINT_COUNT: "2"
+
+  # Feature Flags
+  ENABLE_FEATURE_FLAGS: "true"
+  ENABLE_BETA_FEATURES: "true"
+  ENABLE_PERFORMANCE_TRACKING: "true"
+
+  # Monitoring and Observability
+  METRICS_COLLECTION_INTERVAL: "60"        # 60 second intervals
+  TRACING_SAMPLE_RATE: "0.1"              # Sample 10% of requests
+  HEALTH_CHECK_INTERVAL: "30"             # 30 second health checks
+
+  # Resilience Configuration
+  MAX_RETRIES: "3"
+  RETRY_BACKOFF: "exponential"
