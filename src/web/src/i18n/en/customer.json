@@ -1,0 +1,130 @@
+{
+  "customer": {
+    "details": {
+      "title": "Customer Details",
+      "health_score": "Health Score",
+      "risk_level": "Risk Level",
+      "contract": {
+        "title": "Contract Information",
+        "start_date": "Start Date",
+        "end_date": "End Date",
+        "mrr": "Monthly Recurring Revenue",
+        "status": "Contract Status"
+      },
+      "metrics": {
+        "title": "Key Metrics",
+        "usage": "Usage",
+        "adoption": "Adoption",
+        "support": "Support",
+        "growth": "Growth"
+      }
+    },
+    "risk": {
+      "title": "Risk Assessment",
+      "high": "High Risk",
+      "medium": "Medium Risk", 
+      "low": "Low Risk",
+      "factors": "Risk Factors",
+      "prediction": "Churn Prediction",
+      "score": {
+        "title": "Risk Score",
+        "excellent": "Excellent",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Poor",
+        "critical": "Critical"
+      },
+      "trend": {
+        "increasing": "Risk Increasing",
+        "decreasing": "Risk Decreasing",
+        "stable": "Risk Stable"
+      }
+    },
+    "health": {
+      "title": "Health Overview",
+      "score": "Health Score",
+      "trend": "Trend",
+      "improving": "Improving",
+      "declining": "Declining",
+      "stable": "Stable",
+      "indicators": {
+        "title": "Health Indicators",
+        "engagement": "Engagement",
+        "satisfaction": "Satisfaction",
+        "value_realization": "Value Realization"
+      }
+    },
+    "interactions": {
+      "title": "Interaction History",
+      "type": "Type",
+      "date": "Date",
+      "owner": "Owner",
+      "result": "Result",
+      "no_interactions": "No recent interactions",
+      "types": {
+        "meeting": "Meeting",
+        "email": "Email",
+        "call": "Call",
+        "training": "Training",
+        "review": "Review"
+      },
+      "results": {
+        "completed": "Completed",
+        "scheduled": "Scheduled",
+        "cancelled": "Cancelled",
+        "pending": "Pending"
+      }
+    },
+    "actions": {
+      "view_details": "View Details",
+      "edit_profile": "Edit Profile",
+      "assign_playbook": "Assign Playbook",
+      "schedule_review": "Schedule Review",
+      "export_data": "Export Data",
+      "add_interaction": "Add Interaction",
+      "update_health": "Update Health Score",
+      "manage_risk": "Manage Risk",
+      "view_timeline": "View Timeline"
+    },
+    "status": {
+      "active": "Active",
+      "at_risk": "At Risk",
+      "churned": "Churned",
+      "onboarding": "Onboarding",
+      "suspended": "Suspended",
+      "pending": "Pending Review"
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalid_date": "Invalid date format",
+      "invalid_mrr": "Invalid revenue amount",
+      "invalid_score": "Score must be between 0 and 100",
+      "invalid_email": "Invalid email format",
+      "future_date": "Date cannot be in the future"
+    },
+    "filters": {
+      "title": "Filter Customers",
+      "by_status": "Filter by Status",
+      "by_risk": "Filter by Risk Level",
+      "by_health": "Filter by Health Score",
+      "by_mrr": "Filter by MRR",
+      "apply": "Apply Filters",
+      "clear": "Clear Filters"
+    },
+    "sorting": {
+      "title": "Sort By",
+      "name": "Name",
+      "risk_score": "Risk Score",
+      "health_score": "Health Score",
+      "mrr": "MRR",
+      "last_interaction": "Last Interaction"
+    },
+    "notifications": {
+      "risk_alert": "Risk Level Alert",
+      "health_update": "Health Score Updated",
+      "interaction_due": "Interaction Due",
+      "review_scheduled": "Review Scheduled",
+      "playbook_assigned": "Playbook Assigned"
+    }
+  }
+}
