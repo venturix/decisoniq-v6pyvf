@@ -1,0 +1,149 @@
+name: Dependency Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight UTC
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/backend/pyproject.toml'
+      - 'src/backend/poetry.lock'
+      - 'src/web/package.json'
+      - 'src/web/package-lock.json'
+  pull_request:
+    paths:
+      - 'src/backend/pyproject.toml'
+      - 'src/backend/poetry.lock'
+      - 'src/web/package.json'
+      - 'src/web/package-lock.json'
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+env:
+  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Setup Snyk
+        uses: snyk/actions/setup@v3
+
+  scan-python-deps:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry config virtualenvs.create false
+
+      - name: Install Python dependencies
+        working-directory: src/backend
+        run: |
+          poetry install --no-interaction --no-root
+
+      - name: Run Snyk Python scan
+        working-directory: src/backend
+        run: |
+          snyk test --severity-threshold=medium --package-manager=poetry --sarif-file-output=snyk-python.sarif
+        continue-on-error: true
+
+      - name: Upload Python scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: src/backend/snyk-python.sarif
+          category: python-dependencies
+
+      - name: Post scan summary
+        if: github.event_name == 'pull_request'
+        uses: snyk/actions/python@v3
+        with:
+          args: --severity-threshold=medium --package-manager=poetry
+
+  scan-node-deps:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Node.js dependencies
+        working-directory: src/web
+        run: |
+          npm ci
+
+      - name: Run npm audit
+        working-directory: src/web
+        run: |
+          npm audit --json > npm-audit.json || true
+        continue-on-error: true
+
+      - name: Run Snyk Node.js scan
+        working-directory: src/web
+        run: |
+          snyk test --severity-threshold=medium --package-manager=npm --sarif-file-output=snyk-node.sarif
+        continue-on-error: true
+
+      - name: Upload Node.js scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: src/web/snyk-node.sarif
+          category: node-dependencies
+
+      - name: Post scan summary
+        if: github.event_name == 'pull_request'
+        uses: snyk/actions/node@v3
+        with:
+          args: --severity-threshold=medium
+
+  security-report:
+    needs: [scan-python-deps, scan-node-deps]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate security report
+        run: |
+          echo "## Dependency Security Scan Summary" > $GITHUB_STEP_SUMMARY
+          echo "Security scan completed for both Python and Node.js dependencies." >> $GITHUB_STEP_SUMMARY
+          echo "Check the Security tab for detailed vulnerability reports." >> $GITHUB_STEP_SUMMARY
+
+      - name: Check scan status
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: |
+          echo "::error::Security vulnerabilities detected. Please review the scan results."
+          exit 1
